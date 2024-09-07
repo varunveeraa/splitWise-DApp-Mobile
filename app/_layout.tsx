@@ -4,10 +4,39 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import { WagmiProvider, useAccount, useConnect } from 'wagmi';
+import { sepolia } from '@wagmi/core/chains';
+import { createWeb3Modal, defaultWagmiConfig, Web3Modal, useWeb3Modal, W3mButton } from '@web3modal/wagmi-react-native';
+
+const queryClient = new QueryClient();
 
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
+const projectId = 'af21521794137bf96ff2ad602ac95493';
+
+const metadata = {
+  name: 'Your App',
+  description: 'Your App Description',
+  url: 'https://your-app.com',
+  icons: ['https://avatars.githubusercontent.com/u/37784886'],
+  redirect: {
+    native: 'yourapp://',
+    universal: 'https://your-universal-link.com',
+  },
+};
+
+const chains = [sepolia] as const;
+
+const wagmiConfig = defaultWagmiConfig({ chains, projectId, metadata });
+
+createWeb3Modal({
+  projectId,
+  wagmiConfig,
+  defaultChain: sepolia,
+  enableAnalytics: true,
+});
+
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -27,14 +56,18 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="SignIn/index"/>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-        <Stack.Screen name="CreateSplit/index"/>
-        <Stack.Screen name="CreatSplitsPage/index"/>
-      </Stack>
-    </ThemeProvider>
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <Stack>
+            <Stack.Screen name="SignIn/index"/>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="+not-found" />
+            <Stack.Screen name="CreateSplit/index"/>
+            <Stack.Screen name="CreatSplitsPage/index"/>
+          </Stack>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 }

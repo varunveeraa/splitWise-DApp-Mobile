@@ -1,9 +1,10 @@
 import { Redirect } from "expo-router";
-import { getToken } from "../utilis/variables";
+import { useAccount } from "wagmi";
 
 export default function StartPage() {
-  const isSignIn = getToken();
-  if (isSignIn) {
+  const { isConnected } = useAccount(); 
+
+  if (isConnected) {
     return <Redirect href="/Expense" />;
   } else {
     return <Redirect href="/SignIn" />;

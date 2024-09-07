@@ -28,31 +28,18 @@ const chains = [mainnet, polygon, arbitrum] as const;
 const wagmiConfig = defaultWagmiConfig({ chains, projectId, metadata });
 
 const Profile = () => {
-  return (
-    <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
-        <Web3Modal />
-        <WalletProfile />
-      </QueryClientProvider>
-    </WagmiProvider>
-  );
-};
-
-const WalletProfile = () => {
   const { address, isConnected } = useAccount(); 
-  const { disconnect } = useDisconnect();
   const [redirect, setRedirect] = useState(false);
+  const { disconnect } = useDisconnect();
 
   const handleWalletDisconnect = async () => {
     await disconnect(); 
     setRedirect(true)
   };
 
-  // Use effect to monitor disconnection and trigger redirect
   useEffect(() => {
     if (!isConnected) {
       console.log("Wallet Not Connected");
-      updateToken
       setRedirect(true);
     }
   }, [isConnected]);
@@ -71,5 +58,7 @@ const WalletProfile = () => {
     </View>
   );
 };
+
+
 
 export default Profile;

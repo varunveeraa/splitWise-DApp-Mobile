@@ -17,7 +17,7 @@ export default function NewExpense() {
   const [newPayeeAddress, setNewPayeeAddress] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null); // Initialize as null to avoid passing today's date
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [notes, setNotes] = useState('');
   const [noteModalVisible, setNoteModalVisible] = useState(false);
 
@@ -37,7 +37,7 @@ export default function NewExpense() {
       ]);
       setNewPayeeName('');
       setNewPayeeAddress('');
-      setModalVisible(false); // Close the modal
+      setModalVisible(false);
     } else {
       Alert.alert('Please enter both name and address for the payee.');
     }
@@ -45,54 +45,45 @@ export default function NewExpense() {
 
   const handleAddExpense = () => {
     const selectedPayees = payees.filter((payee) => payee.selected);
-
+  
     if (!description || !amount || !selectedDate) {
       Alert.alert('Please fill out all fields.');
       return;
     }
-
+  
     const expenseData = {
-      payees: selectedPayees.map((payee) => ({
-        name: payee.name,
-        address: payee.address,
-      })),
-      description,
       amount,
-      date: formatDate(selectedDate), // Send the selected date as an ISO string
+      description,
       notes,
-      mediaSource: "drive.com"
+      date: formatDate(selectedDate),
+      mediaSource: "drive.com" 
     };
-
-    console.log(expenseData);
+  
     router.push({
       pathname: '/CreatSplitsPage',
-      params: { expenseData: JSON.stringify(expenseData) }, // Pass the data as a JSON string
+      params: { expenseData: JSON.stringify(expenseData) },
     });
   };
+  
 
-  // Handle the date selection
   const onChangeDate = (event: any, date?: Date) => {
-    setShowDatePicker(false); // Hide the date picker
+    setShowDatePicker(false);
     if (date) {
-      setSelectedDate(date); // Set the selected date as a Date object
+      setSelectedDate(date);
     }
   };
 
-  // Format the selected date to a readable format
   const formatDate = (date: Date | null) => {
     return date ? new Date(date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : null;
   };
 
   return (
     <View style={styles.screenContainer}>
-      {/* New Expense Title */}
       <Text style={styles.newExpenseTitle}>New Expense</Text>
 
       <ScrollView contentContainerStyle={styles.container}>
-        {/* Select Payees Label */}
         <Text style={styles.selectPayeesLabel}>Select your payees</Text>
 
-        {/* Payee List */}
         <View style={styles.payeeContainer}>
           {payees.map((payee, index) => (
             <TouchableOpacity
@@ -113,12 +104,10 @@ export default function NewExpense() {
           ))}
         </View>
 
-        {/* Add New Payee Button */}
         <TouchableOpacity style={styles.smallButton} onPress={() => setModalVisible(true)}>
           <Text style={styles.smallButtonText}>Add New Payee</Text>
         </TouchableOpacity>
 
-        {/* Modal for Adding Payee */}
         <Modal visible={modalVisible} animationType="slide" transparent={true}>
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
@@ -154,7 +143,6 @@ export default function NewExpense() {
           </View>
         </Modal>
 
-        {/* Description Input */}
         <View style={styles.inputContainer}>
           <MaterialCommunityIcons name="format-letter-case" size={18} color="white" />
           <TextInput
@@ -166,7 +154,6 @@ export default function NewExpense() {
           />
         </View>
 
-        {/* Amount Input */}
         <View style={styles.inputContainer}>
           <FontAwesome name="dollar" size={18} color="white" />
           <TextInput
@@ -184,15 +171,12 @@ export default function NewExpense() {
           <Text style={styles.boldText}>equally</Text>
         </Text>
 
-        {/* Icons for Date, Media, Notes */}
         <View style={styles.iconContainer}>
-          {/* Calendar Icon with Date Picker */}
           <View style={styles.iconWithLabel}>
             <TouchableOpacity onPress={() => setShowDatePicker(true)}>
               <FontAwesome name="calendar" size={30} color={selectedDate ? 'green' : 'white'} />
             </TouchableOpacity>
 
-            {/* Show selected date below the calendar icon */}
             {selectedDate && (
               <Text style={styles.selectedDateText}>{formatDate(selectedDate)}</Text>
             )}
@@ -200,29 +184,26 @@ export default function NewExpense() {
 
           <FontAwesome name="image" size={30} color="white" />
 
-          {/* Notes Icon with Modal */}
           <View style={styles.iconWithLabel}>
             <TouchableOpacity onPress={() => setNoteModalVisible(true)}>
               <MaterialCommunityIcons
                 name="note-text"
                 size={30}
-                color={notes ? 'green' : 'white'} // Turn green after notes are entered
+                color={notes ? 'green' : 'white'}
               />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Date Picker */}
         {showDatePicker && (
           <DateTimePicker
-            value={selectedDate || new Date()} // Make sure this is a Date object
+            value={selectedDate || new Date()}
             mode="date"
             display="default"
             onChange={onChangeDate}
           />
         )}
 
-        {/* Notes Modal */}
         <Modal visible={noteModalVisible} animationType="slide" transparent={true}>
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
@@ -249,7 +230,6 @@ export default function NewExpense() {
           </View>
         </Modal>
 
-        {/* Add Expense Button */}
         <TouchableOpacity style={styles.addButton} onPress={handleAddExpense}>
           <Text style={styles.buttonText}>Add Expense</Text>
         </TouchableOpacity>
@@ -261,7 +241,7 @@ export default function NewExpense() {
 const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
-    backgroundColor: '#1c1c1e', // Dark background
+    backgroundColor: '#1c1c1e', 
     paddingTop: 30,
     paddingHorizontal: 20,
   },

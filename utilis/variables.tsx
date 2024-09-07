@@ -1,5 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
 let authToken: boolean = false;
 let walletAddress: string = "";
 
