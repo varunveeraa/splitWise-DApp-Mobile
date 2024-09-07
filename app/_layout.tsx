@@ -16,9 +16,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 const projectId = 'af21521794137bf96ff2ad602ac95493';
 
 const metadata = {
-  name: 'Your App',
-  description: 'Your App Description',
-  url: 'https://your-app.com',
+  name: 'SplitWise',
+  description: 'SplitWise App Prototype 2',
+  url: ' exp://118.139.29.177:8081',
   icons: ['https://avatars.githubusercontent.com/u/37784886'],
   redirect: {
     native: 'yourapp://',

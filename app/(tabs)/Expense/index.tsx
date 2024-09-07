@@ -1,45 +1,80 @@
 import { Redirect } from 'expo-router';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { useReadContract } from 'wagmi';
+import { useReadContract, useReadContracts } from 'wagmi';
 import { splitFactoryABI, contractAddress } from '@/function/splitFactroryExports';
+import splitABI from '@/function/splitExports';
 
 export default function App() {
   const [redirect, setRedirect] = useState(false);
 
-  const { data, error, isLoading, refetch } = useReadContract({
+  // Fetch deployed contracts with type annotation
+  const { data: contractData, error: contractError, isLoading: isContractsLoading } = useReadContract<string[]>({
     abi: splitFactoryABI,
     address: contractAddress,
     functionName: 'getDeployedSplits',
   });
 
-  const getContracts = () => {
-    refetch();
-    console.log(data);
-  };
+  // Ensure contractData is typed as an array of strings or undefined
+  const descriptionContracts = contractData?.map((contract: string) => ({
+    address: contract,
+    abi: splitABI,
+    functionName: 'description',
+  })) || [];
 
-  const contractData = data as string[] | undefined;
+  const amountContracts = contractData?.map((contract: string) => ({
+    address: contract,
+    abi: splitABI,
+    functionName: 'amount',
+  })) || [];
+
+  // Use `useReadContracts` to read descriptions and amounts for all contracts
+  const { data: descriptions, error: descriptionsError, isLoading: isDescriptionsLoading } = useReadContracts({
+    contracts: descriptionContracts,
+  });
+
+  const { data: amounts, error: amountsError, isLoading: isAmountsLoading } = useReadContracts({
+    contracts: amountContracts,
+  });
+
+  console.log(descriptions, amounts);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Splits</Text>
 
-      {/* <TouchableOpacity onPress={getContracts} style={styles.refreshButton}>
-        <Text style={styles.refreshButtonText}>Get Contracts</Text>
-      </TouchableOpacity> */}
+      {isContractsLoading && <Text style={styles.loadingText}>Loading contracts...</Text>}
+      {contractError && <Text style={styles.errorText}>Error loading contracts: {contractError.message}</Text>}
+      {isDescriptionsLoading && !isContractsLoading && <Text style={styles.loadingText}>Loading descriptions...</Text>}
+      {descriptionsError && <Text style={styles.errorText}>Error loading descriptions: {descriptionsError.message}</Text>}
+      {isAmountsLoading && !isContractsLoading && <Text style={styles.loadingText}>Loading amounts...</Text>}
+      {amountsError && <Text style={styles.errorText}>Error loading amounts: {amountsError.message}</Text>}
 
-      {isLoading && <Text style={styles.loadingText}>Loading contracts...</Text>}
-      {error && <Text style={styles.errorText}>Error loading contracts: {error.message}</Text>}
-
-      {contractData && Array.isArray(contractData) && (
+      {/* Render contract addresses, descriptions, and amounts */}
+      {contractData && contractData.length > 0 && (
         <ScrollView style={styles.scrollView}>
-          {contractData.map((contract, index) => (
+          {contractData.map((contract: string, index: number) => (
             <TouchableOpacity
               key={index}
               style={styles.contractButton}
               onPress={() => console.log(`Contract Address: ${contract}`)}
             >
+              {/* Display the contract address */}
               <Text style={styles.contractButtonText}>{contract}</Text>
+
+              {/* Display description and amount on the same line but at opposite ends */}
+              <View style={styles.row}>
+                <Text style={styles.descriptionText}>
+                  {descriptions?.[index]?.result
+                    ? descriptions[index].result.toString()
+                    : 'Loading description...'}
+                </Text>
+                <Text style={styles.amountText}>
+                  {amounts?.[index]?.result
+                    ? `${amounts[index].result.toString()} wei`
+                    : 'Loading amount...'}
+                </Text>
+              </View>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -70,19 +105,6 @@ const styles = StyleSheet.create({
     marginTop: 40,
     marginBottom: 20,
   },
-  refreshButton: {
-    backgroundColor: '#1e90ff',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 30,
-    marginBottom: 20,
-    elevation: 3,
-  },
-  refreshButtonText: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: '600',
-  },
   loadingText: {
     color: '#ffffff',
     fontSize: 16,
@@ -104,17 +126,35 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     borderRadius: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
-    elevation: 5,
+    elevation: 6,
     borderWidth: 1,
     borderColor: '#2e2e2e',
   },
   contractButtonText: {
-    color: '#f5f5f7',
-    fontSize: 13,
-    fontWeight: '500',
+    fontSize: 12, // Smaller font size
+    color: 'rgba(255, 255, 255, 0.5)', // High transparency
+    fontWeight: '400',
+    marginBottom: 5,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between', // Space out description and amount
+    alignItems: 'center',
+  },
+  descriptionText: {
+    fontSize: 18, // Larger font size for emphasis
+    color: '#ffffff',
+    fontWeight: 'bold',
+    marginTop: 5,
+  },
+  amountText: {
+    fontSize: 16,
+    color: '#00ff00',
+    fontWeight: 'bold',
+    marginTop: 5,
   },
   addButton: {
     position: 'absolute',
@@ -125,10 +165,12 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 25,
     elevation: 5,
+    borderWidth: 2, // Add a solid border
+    borderColor: '#00ff00', // Green border
   },
   buttonText: {
     color: '#ffffff',
-    fontSize: 18, 
+    fontSize: 18,
     fontWeight: 'bold',
   },
 });
