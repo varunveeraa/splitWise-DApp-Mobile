@@ -1,4 +1,4 @@
-import { Redirect } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useReadContract, useReadContracts } from 'wagmi';
@@ -7,26 +7,31 @@ import splitABI from '@/function/splitExports';
 
 export default function App() {
   const [redirect, setRedirect] = useState(false);
+  const router = useRouter();
 
   // Fetch deployed contracts with type annotation
-  const { data: contractData, error: contractError, isLoading: isContractsLoading } = useReadContract<string[]>({
+  const { data: contractData, error: contractError, isLoading: isContractsLoading } = useReadContract<
+    typeof splitFactoryABI,
+    'getDeployedSplits',
+    []
+  >({
     abi: splitFactoryABI,
     address: contractAddress,
     functionName: 'getDeployedSplits',
   });
 
-  // Ensure contractData is typed as an array of strings or undefined
-  const descriptionContracts = contractData?.map((contract: string) => ({
+  // Ensure contractData is typed and defined
+  const descriptionContracts = (contractData || []).map((contract: string) => ({
     address: contract,
     abi: splitABI,
     functionName: 'description',
-  })) || [];
+  }));
 
-  const amountContracts = contractData?.map((contract: string) => ({
+  const amountContracts = (contractData || []).map((contract: string) => ({
     address: contract,
     abi: splitABI,
     functionName: 'amount',
-  })) || [];
+  }));
 
   // Use `useReadContracts` to read descriptions and amounts for all contracts
   const { data: descriptions, error: descriptionsError, isLoading: isDescriptionsLoading } = useReadContracts({
@@ -51,14 +56,18 @@ export default function App() {
       {amountsError && <Text style={styles.errorText}>Error loading amounts: {amountsError.message}</Text>}
 
       {/* Render contract addresses, descriptions, and amounts */}
-      {contractData && contractData.length > 0 && (
+      {contractData && contractData.length > 0 ? (
         <ScrollView style={styles.scrollView}>
           {contractData.map((contract: string, index: number) => (
             <TouchableOpacity
               key={index}
               style={styles.contractButton}
-              onPress={() => console.log(`Contract Address: ${contract}`)}
-            >
+              onPress={() => {
+                router.push({
+                  pathname: '/SplitMethods',
+                  params: { splitAddress: contract },
+                });
+              }}>
               {/* Display the contract address */}
               <Text style={styles.contractButtonText}>{contract}</Text>
 
@@ -78,13 +87,25 @@ export default function App() {
             </TouchableOpacity>
           ))}
         </ScrollView>
+      ) : (
+        <Text>No contracts available</Text>
       )}
+
+      <TouchableOpacity style={styles.joinButton} onPress={() => {
+                router.push({
+                  pathname: '/JoinNewSplit',
+                  params: {}
+                });
+              }}>
+        <Text style={styles.buttonText}>Join Split</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity style={styles.addButton} onPress={() => setRedirect(true)}>
         <Text style={styles.buttonText}>Add Split</Text>
       </TouchableOpacity>
 
       {redirect && <Redirect href="/CreateSplit" />}
+      
     </View>
   );
 }
@@ -156,17 +177,29 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 5,
   },
+  joinButton: {
+    position: 'absolute',
+    right: 20,
+    bottom: 90,
+    backgroundColor: '#4a4a4a',
+    borderRadius: 50,
+    paddingVertical: 10, // Smaller vertical padding for smaller button size
+    paddingHorizontal: 25,
+    elevation: 5,
+    borderWidth: 2,
+    borderColor: '#007aff', // Blue border for the "Join Split" button
+  },
   addButton: {
     position: 'absolute',
     right: 20,
     bottom: 30,
     backgroundColor: '#4a4a4a',
     borderRadius: 50,
-    paddingVertical: 15,
+    paddingVertical: 10, // Smaller vertical padding for smaller button size
     paddingHorizontal: 25,
     elevation: 5,
     borderWidth: 2, // Add a solid border
-    borderColor: '#00ff00', // Green border
+    borderColor: '#00ff00', // Green border for the "Add Split" button
   },
   buttonText: {
     color: '#ffffff',

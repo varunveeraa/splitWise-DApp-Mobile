@@ -65,6 +65,8 @@ export default function RootLayout() {
             <Stack.Screen name="+not-found" />
             <Stack.Screen name="CreateSplit/index"/>
             <Stack.Screen name="CreatSplitsPage/index"/>
+            <Stack.Screen name="SplitMethods/index" />
+            <Stack.Screen name="JoinNewSplit/index"/>
           </Stack>
         </ThemeProvider>
       </QueryClientProvider>
